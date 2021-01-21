@@ -3,11 +3,10 @@ from processors.file_downloader import FileDownloader
 from processors.m3u8_processor import M3u8Processor
 from processors import logger
 
+file_downloader = FileDownloader(logger.log)
+m3u8_processor = M3u8Processor(logger.log)
 
 def execute(remote_url, save_dir, video_base_name = None):
-    file_downloader = FileDownloader(logger.log)
-    m3u8_processor = M3u8Processor(logger.log)
-
     http_prefix, m3u8_name = m3u8_processor.parse_url(remote_url)
     m3u8_basename = m3u8_name.split(".")[0]
 
