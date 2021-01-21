@@ -1,0 +1,59 @@
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <link rel="shortcut icon" href="{{static_url('image/favicon.ico')}}" type="image/x-icon">
+        <link rel="stylesheet" href="{{static_url('css/bootstrap.min.css')}}">
+        <link rel="stylesheet" href="{{static_url('css/my-style.css')}}">
+        <script src="{{static_url('js/jquery-4.3.1.js')}}"></script>
+        <script src="{{static_url('js/bootstrap.min.js')}}"></script>
+        <script src="{{static_url('js/bootbox.all.min.js')}}"></script>
+        <script src="{{static_url('js/my-script.js')}}" defer="defer"></script>
+        <title>M3U8下载合并工具</title>
+    </head>
+    <body>
+        <div class="title">
+            <h1 style="text-align:center;">M3U8下载合并工具</h1>
+        </div>
+        <div id="menu">
+            <div class="input">
+                <div class="input-text">
+                    <div class="input-group">
+                        <span class="input-group-addon">URL</span>
+                        <input type="text" id="m3u8-url" class="form-control" placeholder="">
+                    </div>
+                </div>
+                <div class="input-btn"><button type="button" id="parse-m3u8" class="btn btn-default">解析</button></div>
+                <div class="input-btn"><button type="button" id="clear-all" class="btn btn-default">清空</button></div>
+            </div>
+            <div class="input">
+                <div class="input-text">
+                    <div class="input-group">
+                        <span class="input-group-addon">文件名</span>
+                        <input type="text" id="video-name" class="form-control" placeholder="">
+                    </div>
+                </div>
+                <div class="input-btn"><button type="button" id="start-download" class="btn btn-default" disabled>下载</button></div>
+                <div class="input-btn"><button type="button" id="stop-download" class="btn btn-default" disabled>停止下载</button></div>
+            </div>
+        </div>
+        <div class="alert alert-info" id="parsed-url" role="alert"></div>
+        <div id="infos">
+            <textarea id="log-area" class="form-control" readonly="readonly"></textarea>
+            <div id="segment-infos">
+                <div id="segment-map">
+                    <table>
+                        <tbody id="segment-map-tb"></tbody>
+                    </table>
+                </div>
+                <div id="video-info"><p>视频总时长<strong id="video-duration">00:00:00</strong>，已下载片段个数：<strong id="segment-done-count">0</strong>/<strong id="segment-total-count">0</strong></p></div>
+            </div>
+        </div>
+        <div id="progress-div">
+            <div class="progress progress-striped" id="download-progress">
+                <div class="progress-bar progress-bar-info" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+                    <span>0%</span>
+                </div>
+            </div>
+        </div>
+    </body>
+</html>
