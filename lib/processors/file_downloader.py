@@ -8,7 +8,7 @@ from .coroutine_pool import AsyncPool
 
 SINGLE_DOWNLOAD_RETRY = 3
 BATCH_DOWNLOAD_RETRY = 3
-MAX_DOWNLOAD_CONNECTION_COUNT = 30
+MAX_DOWNLOAD_CONNECTION_COUNT = 123
 
 class FileDownloader:
     def __init__(self, handle_message_func=print):

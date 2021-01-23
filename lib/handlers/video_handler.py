@@ -6,7 +6,7 @@ import tornado.web
 from ..constants import LogMsg, VIDEO_ROOT_DIR
 
 class VideoHandler(tornado.web.RequestHandler):
-    # {"task_id":xx, "m3u8_name":xxx, "http_prefix":xxx, "video_name":xxx, "segment_states":{}, "segment_durations":{}, "logs":[], "task_status":xx}
+    # {"task_id":xx, "m3u8_url":xx, "m3u8_name":xxx, "video_name":xxx, "segment_states":{}, "segment_durations":{}, "segment_urls":{}, "logs":[], "task_status":xx}
     current_task = None
 
     lock = None
@@ -97,7 +97,7 @@ class VideoHandler(tornado.web.RequestHandler):
 
     # 接收：None
     # 返回：{"msg":"free/busy", "info":{}}
-    #       "info": {"task_id":xx, "m3u8_name":xxx, "http_prefix":xxx, "video_name":xxx, "segment_states":{}, "segment_durations":{}, "logs":[], "task_status":xx}
+    #       "info": {"task_id":xx, "m3u8_url":xx, "m3u8_name":xxx, "video_name":xxx, "segment_states":{}, "segment_durations":{}, "segment_urls":{}, "logs":[], "task_status":xx}
     def get(self):
         if self.get_task() == None or self.get_task().get("task_status") == "finished":
             response = {"msg":"free"}
@@ -129,7 +129,7 @@ class VideoHandler(tornado.web.RequestHandler):
         return
 
 
-    # 接收：{"task_id":xx, "m3u8_name":xxx, "http_prefix":xxx, "video_name":xxx, "segment_durations":{}, "task_status":xx,"logs":[]}
+    # 接收：{"task_id":xx, "m3u8_url":xx, "m3u8_name":xxx, "video_name":xxx, "segment_durations":{}, "segment_urls":{}, "task_status":xx,"logs":[]}
     # 返回：{"msg":busy/success/fail, "info":{"task_id":xx, "segment_states":{}}
     def post(self):
         if self.lock.is_locked() or (self.get_task() != None and self.get_task().get("task_status") != "finished") :
@@ -162,13 +162,12 @@ class VideoHandler(tornado.web.RequestHandler):
             self.lock.set(False)
 
     def download_and_merge(self, data):
-        http_prefix = data["http_prefix"]
-        segment_durations = data["segment_durations"]
+        segment_urls = data["segment_urls"]
         m3u8_basename = data["m3u8_name"].split(".")[0]
         temp_dir = os.path.join(VIDEO_ROOT_DIR, "temp", m3u8_basename)
         download_infos = []
-        for segment_name in segment_durations:
-            segment_url = http_prefix + segment_name
+        for segment_name in segment_urls:
+            segment_url = segment_urls[segment_name]
             segment_path = os.path.join(temp_dir, segment_name)
             download_info = (segment_url, segment_path)
             download_infos.append(download_info)

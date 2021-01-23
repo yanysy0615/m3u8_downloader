@@ -1,32 +1,33 @@
-import re, os
+import re, os, random
 from ..constants import LogMsg
+from . import m3u8
 
 class M3u8Processor:
     def __init__(self, handle_message_func=print):
         self.handle_message = handle_message_func
 
     def parse_url(self, m3u8_url):
-        if "?" in m3u8_url:
-            m3u8_url, _ = m3u8_url.split("?")
-        match_result = re.match(r"(.*/)(.*\.m3u8)", m3u8_url)
-        http_prefix = match_result.group(1)
-        m3u8_name = match_result.group(2)
-        return http_prefix, m3u8_name
+        temp_url = m3u8_url
+        if "?" in temp_url:
+            temp_url = temp_url.split("?")[0]
+        match_res = re.match(r"(.*/)(.*?\.m3u8)", temp_url)
+        base_uri = match_res.group(1)
+        m3u8_name = match_res.group(2)
+        result = m3u8.load(m3u8_url)
+        if result.is_variant:
+            new_url = result.playlists[0].absolute_uri
+            return self.parse_url(new_url)
+        else:
+            segment_infos = []
+            for i in range(len(result.segments)):
+                segment = result.segments[i]
+                url = base_uri + segment.uri
+                name = "seg-%03d.ts"%(i+1)
+                duration = segment.duration
+                segment_infos.append((name, duration, url))
+            return m3u8_name, segment_infos
 
-    def parse_file(self, m3u8_path):
-        segment_durations = dict()
-        with open(m3u8_path, "r") as f:
-            lines = f.readlines()
-        for i in range(len(lines)):
-            line = lines[i].strip()
-            if not line.startswith("#EX"):
-                segment_name = line
-                previous_line =  lines[i-1].strip()
-                match_result = re.match("#EXTINF:(.*),", previous_line)
-                duration = float(match_result.group(1))
-                duration = round(duration, 2)
-                segment_durations[segment_name] = duration
-        return segment_durations
+
 
     def merge_segments(self, segment_paths, video_export_path):
         video_name = os.path.basename(video_export_path)

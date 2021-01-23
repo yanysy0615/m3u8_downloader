@@ -1,7 +1,7 @@
 // segmentState: 0-prepare/fail, 1-downloading, 2-success
 // task_status: prepare, running, stopping, finished
 
-// {"task_id":xx, "m3u8_name":xx, "http_prefix":xx, "video_name":xx, "segment_states":{}, "segment_durations":{}, "task_status":xx", video_info":{}};
+// {"task_id":xx, "m3u8_url", "m3u8_name":xx, "video_name":xx, "segment_states":{}, "segment_durations":{}, "task_status":xx", video_info":{}};
 var task;
 
 var tableCol = 4
@@ -317,8 +317,8 @@ class Render {
                 $("#video-name").val("")
                 return
             }
-            if($("#m3u8-url").val().length == 0 && task.hasOwnProperty("http_prefix")){
-                $("#m3u8-url").val(task["http_prefix"] + task["m3u8_name"])
+            if(task.hasOwnProperty("m3u8_url")){
+                $("#m3u8-url").val(task["m3u8_url"])
             }
             if(task.hasOwnProperty("video_name")){
                 $("#video-name").val(task["video_name"])
@@ -458,9 +458,7 @@ class Render {
                 $("#parsed-url").html("");
                 return;
             }
-            var httpPrefix = task["http_prefix"];
-            var m3u8Name = task["m3u8_name"];
-            $("#parsed-url").html("<p>当前解析地址：" + httpPrefix + m3u8Name + "</p>");
+            $("#parsed-url").html("<p>当前解析地址：" + task["m3u8_url"].split("?")[0] + "</p>");
         }
         this.renderLogArea = function (messages, append = true) {
             var logAreaDOM = $("#log-area");
@@ -476,6 +474,7 @@ class Render {
                     logAreaAppend(log);
                 }
             }
+            logAreaDOM.scrollTop(logAreaDOM[0].scrollHeight);
         };
     }
 }

@@ -31,7 +31,7 @@ class M3u8Handler(tornado.web.RequestHandler):
 
     # 接收：{"m3u8_url":"http://xxx/xx.m3u8?xxx"}
     # 返回：{"msg":"busy/fail/success","info":{}}
-    #       "info": {"task_id":xx, "m3u8_name":xx, "http_prefix":xx, "video_name":xx "segment_states":[], "segment_durations":[], "logs": [], "task_status":xx}
+    #       "info": {"task_id":xx, "m3u8_url":xx, "m3u8_name":xx, "video_name":xx "segment_states":[], "segment_durations":[], "segment_urls":{}, "logs": [], "task_status":xx}
     @tornado.gen.coroutine
     def post(self):
         request = json.loads(self.request.body.decode())
@@ -48,13 +48,12 @@ class M3u8Handler(tornado.web.RequestHandler):
             self.write(json.dumps(response))
             return
         else:
-            http_prefix = info["http_prefix"]
             m3u8_name = info["m3u8_name"]
             m3u8_basename = m3u8_name.split(".")[0]
             video_name = m3u8_basename + ".mp4"
             task_id = "".join(str(uuid.uuid4()).split("-"))
-            log = {"msg":LogMsg.PARSE_SUCCESS, "info":{"file_name":m3u8_name, "http_prefix":http_prefix, "url":m3u8_url}}
-            info.update({"task_id":task_id, "video_name":video_name, "logs":[log], "task_status":"prepare"})
+            log = {"msg":LogMsg.PARSE_SUCCESS, "info":{"file_name":m3u8_name, "url":m3u8_url}}
+            info.update({"m3u8_url":m3u8_url, "task_id":task_id, "video_name":video_name, "logs":[log], "task_status":"prepare"})
             response = {"msg":"success", "info":info}
             self.write(json.dumps(response))
         finally:
@@ -63,17 +62,17 @@ class M3u8Handler(tornado.web.RequestHandler):
     
     @tornado.gen.coroutine
     def download_and_parse(self, m3u8_url):
-        http_prefix, m3u8_name = self.m3u8_processor.parse_url(m3u8_url)
+        m3u8_name, segment_infos = self.m3u8_processor.parse_url(m3u8_url)
         m3u8_basename = m3u8_name.split(".")[0]
         temp_dir = os.path.join(VIDEO_ROOT_DIR, "temp", m3u8_basename)
         m3u8_path = os.path.join(temp_dir, m3u8_name)
         if not os.path.exists(temp_dir):
             os.makedirs(temp_dir)
-        yield self.file_downloader.async_download(m3u8_url, m3u8_path)
-        segment_durations = self.m3u8_processor.parse_file(m3u8_path)
+        segment_durations = {segment_name:segment_duration for segment_name, segment_duration, segment_url in segment_infos}
+        segment_urls = {segment_name:segment_url for segment_name, segment_duration, segment_url in segment_infos}
         segment_states = {}
         for segment_name in segment_durations:
             segment_path = os.path.join(temp_dir, segment_name)
             segment_states[segment_name] = 2 if os.path.exists(segment_path) else 0
-        info = {"m3u8_name":m3u8_name, "http_prefix":http_prefix, "segment_states":segment_states, "segment_durations":segment_durations}
+        info = {"m3u8_name":m3u8_name, "segment_states":segment_states, "segment_durations":segment_durations, "segment_urls": segment_urls}
         return info
